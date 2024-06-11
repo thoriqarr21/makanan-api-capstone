@@ -118,18 +118,18 @@ const init = async () => {
     handler: async (request, h) => {
       try {
         const {
-          name, pictureId,
+          name, deskripsi, pictureId,
         } = request.payload;
         const daerahId = uuid.v4();
         await connection.query(
-          'INSERT INTO daerahs (daerahId, name, pictureId) VALUES (?, ?, ?)',
-          [daerahId, name, pictureId],
+          'INSERT INTO daerahs (daerahId, name, deskripsi, pictureId) VALUES (?, ?, ?, ?)',
+          [daerahId, name, deskripsi, pictureId],
         );
         return {
           error: false,
           message: 'Daerah added successfully',
           daerah: {
-            daerahId, name, pictureId,
+            daerahId, name, deskripsi, pictureId,
           },
         };
       } catch (error) {
@@ -141,6 +141,7 @@ const init = async () => {
       validate: {
         payload: Joi.object({
           name: Joi.string().required(),
+          deskripsi: Joi.string().required(),
           pictureId: Joi.string().required(),
         }),
       },
@@ -177,17 +178,17 @@ const init = async () => {
       try {
         const { daerahId } = request.params;
         const {
-          name, pictureId,
+          name, deskripsi, pictureId,
         } = request.payload;
         await connection.query(
-          'UPDATE daerahs SET name = ?, pictureId = ? WHERE daerahId = ?',
-          [name, pictureId, daerahId],
+          'UPDATE daerahs SET name = ?, deskripsi = ?,  pictureId = ? WHERE daerahId = ?',
+          [name, deskripsi, pictureId, daerahId],
         );
         return {
           error: false,
           message: 'Daerah updated successfully',
           daerah: {
-            daerahId, name, pictureId,
+            daerahId, name, deskripsi, pictureId,
           },
         };
       } catch (error) {
@@ -215,7 +216,7 @@ const init = async () => {
     path: '/makanan',
     handler: async (request, h) => {
       try {
-        const makanans = await new Promise((resolve, reject) => {
+        const makananss = await new Promise((resolve, reject) => {
           connection.query('SELECT * FROM makanans', (error, results, fields) => {
             if (error) {
               reject(error);
@@ -228,7 +229,7 @@ const init = async () => {
         return h.response({
           error: false,
           message: 'success',
-          makanan: makanans,
+          makanans: makananss,
         });
       } catch (error) {
         console.error(`Error fetching makanans: ${error.stack}`);
