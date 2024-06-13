@@ -25,7 +25,7 @@ connection.connect((err) => {
 
 const init = async () => {
   const server = Hapi.server({
-    port: 3027,
+    port: 3025,
     host: 'localhost',
   });
     // Daerah API //
@@ -63,13 +63,13 @@ const init = async () => {
 
   server.route({
     method: 'GET',
-    path: '/daerah/{id}',
+    path: '/daerah/{daerahId}',
     handler: async (request, h) => {
       try {
-        const { id } = request.params;
+        const { daerahId } = request.params;
 
         const daerah = await new Promise((resolve, reject) => {
-          connection.query('SELECT * FROM daerahs WHERE id = ?', [id], (error, results, fields) => {
+          connection.query('SELECT * FROM daerahs WHERE daerahId = ?', [daerahId], (error, results, fields) => {
             if (error) {
               reject(error);
             } else {
@@ -85,7 +85,7 @@ const init = async () => {
         const detailedDaerah = {
           ...daerah,
           makanans: await new Promise((resolve, reject) => {
-            connection.query('SELECT * FROM makanans WHERE id = ?', [id], (error, results, fields) => {
+            connection.query('SELECT * FROM makanans WHERE daerahId = ?', [daerahId], (error, results, fields) => {
               if (error) {
                 reject(error);
               } else {
@@ -120,16 +120,16 @@ const init = async () => {
         const {
           name, deskripsi, pictureId,
         } = request.payload;
-        const id = uuid.v4();
+        const daerahId = uuid.v4();
         await connection.query(
-          'INSERT INTO daerahs (id, name, deskripsi, pictureId) VALUES (?, ?, ?, ?)',
-          [id, name, deskripsi, pictureId],
+          'INSERT INTO daerahs (daerahId, name, deskripsi, pictureId) VALUES (?, ?, ?, ?)',
+          [daerahId, name, deskripsi, pictureId],
         );
         return {
           error: false,
           message: 'Daerah added successfully',
           daerah: {
-            id, name, deskripsi, pictureId,
+            daerahId, name, deskripsi, pictureId,
           },
         };
       } catch (error) {
@@ -153,11 +153,11 @@ const init = async () => {
 
   server.route({
     method: 'DELETE',
-    path: '/daerah/{id}',
+    path: '/daerah/{daerahId}',
     handler: async (request, h) => {
       try {
-        const { id } = request.params;
-        await connection.query('DELETE FROM daerahs WHERE id = ?', [id]);
+        const { daerahId } = request.params;
+        await connection.query('DELETE FROM daerahs WHERE daerahId = ?', [daerahId]);
         return { error: false, message: 'Daerah deleted successfully' };
       } catch (error) {
         console.error(`Error deleting daerah: ${error.stack}`);
@@ -173,22 +173,22 @@ const init = async () => {
 
   server.route({
     method: 'PUT',
-    path: '/daerah/{id}',
+    path: '/daerah/{daerahId}',
     handler: async (request, h) => {
       try {
-        const { id } = request.params;
+        const { daerahId } = request.params;
         const {
           name, deskripsi, pictureId,
         } = request.payload;
         await connection.query(
-          'UPDATE daerahs SET name = ?, deskripsi = ?,  pictureId = ? WHERE id = ?',
-          [name, deskripsi, pictureId, id],
+          'UPDATE daerahs SET name = ?, deskripsi = ?,  pictureId = ? WHERE daerahId = ?',
+          [name, deskripsi, pictureId, daerahId],
         );
         return {
           error: false,
           message: 'Daerah updated successfully',
           daerah: {
-            id, name, deskripsi, pictureId,
+            daerahId, name, deskripsi, pictureId,
           },
         };
       } catch (error) {
@@ -265,8 +265,8 @@ const init = async () => {
 
         const detailedMakanan = {
           ...makanan,
-          coments: await new Promise((resolve, reject) => {
-            connection.query('SELECT * FROM coments WHERE id = ?', [id], (error, results, fields) => {
+          reseps: await new Promise((resolve, reject) => {
+            connection.query('SELECT * FROM reseps WHERE id = ?', [id], (error, results, fields) => {
               if (error) {
                 reject(error);
               } else {
@@ -299,18 +299,18 @@ const init = async () => {
     handler: async (request, h) => {
       try {
         const {
-          name, publisher, description, tingkatSulit, waktu, rating, image, bahan, id,
+          name, publisher, description, tingkatSulit, waktu, rating, image, daerahId,
         } = request.payload;
-        // const id = uuid.v4();
+        const id = uuid.v4();
         await connection.query(
-          'INSERT INTO makanans (id, name, publisher, description, tingkatSulit, waktu, rating, image, bahan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [id, name, publisher, description, tingkatSulit, waktu, rating, image, bahan],
+          'INSERT INTO makanans (id, name, publisher, description, tingkatSulit, waktu, rating, image, daerahId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [id, name, publisher, description, tingkatSulit, waktu, rating, image, daerahId],
         );
         return {
           error: false,
           message: 'Makanan added successfully',
           makanan: {
-            id, name, publisher, description, tingkatSulit, waktu, rating, image, bahan,
+            id, name, publisher, description, tingkatSulit, waktu, rating, image, daerahId,
           },
         };
       } catch (error) {
@@ -328,8 +328,7 @@ const init = async () => {
           waktu: Joi.string().required(),
           rating: Joi.string().required(),
           image: Joi.string().required(),
-          bahan: Joi.string().required(),
-          id: Joi.string().required(),
+          daerahId: Joi.string().required(),
         }),
       },
       cors: {
@@ -363,19 +362,19 @@ const init = async () => {
     path: '/makanan/{id}',
     handler: async (request, h) => {
       try {
-        // const { id } = request.params;
+        const { id } = request.params;
         const {
-          name, publisher, description, tingkatSulit, waktu, rating, image, bahan, id,
+          name, publisher, description, tingkatSulit, waktu, rating, image, daerahId,
         } = request.payload;
         await connection.query(
-          'UPDATE makanans SET name = ?, publisher = ?, description = ?, tingkatSulit = ?, waktu = ?, rating = ?, image = ?, bahan =?, id = ? WHERE id = ?',
-          [id, name, publisher, description, tingkatSulit, waktu, rating, image, bahan, id],
+          'UPDATE makanans SET name = ?, publisher = ?, description = ?, tingkatSulit = ?, waktu = ?, rating = ?, image = ?, daerahId = ? WHERE id = ?',
+          [name, publisher, description, tingkatSulit, waktu, rating, image, daerahId, id],
         );
         return {
           error: false,
           message: 'Makanan updated successfully',
           makanan: {
-            id, name, publisher, description, tingkatSulit, waktu, rating, image, bahan, id,
+            id, name, publisher, description, tingkatSulit, waktu, rating, image, daerahId,
           },
         };
       } catch (error) {
@@ -393,8 +392,7 @@ const init = async () => {
           waktu: Joi.string().required(),
           rating: Joi.string().required(),
           image: Joi.string().required(),
-          bahan: Joi.string().required(),
-          id: Joi.string().required(),
+          daerahId: Joi.string().required(),
         }),
       },
       cors: {
@@ -403,14 +401,14 @@ const init = async () => {
     },
   });
 
-  // Post coment //
+  // Post Resep //
 
   server.route({
     method: 'POST',
-    path: '/coment',
+    path: '/resep',
     handler: async (request, h) => {
       try {
-        const { id, name, komentar } = request.payload;
+        const { id, bahan, caraMasak } = request.payload;
         // const id = uuid.v4();
         const makananDetail = await connection.query(
           'SELECT id FROM makanans WHERE id = ?',
@@ -420,30 +418,30 @@ const init = async () => {
           return h.response({ error: true, message: 'makanan not found' }).code(404);
         }
         await connection.query(
-          'INSERT INTO coments (id, name, komentar) VALUES (?, ?, ?)',
-          [id, name, komentar],
+          'INSERT INTO reseps (id, bahan, caraMasak) VALUES (?, ?, ?)',
+          [id, bahan, caraMasak],
         );
 
         return {
           error: false,
-          message: 'Coment added successfully',
-          coment: {
+          message: 'Resep added successfully',
+          resep: {
             id,
-            name,
-            komentar,
+            bahan,
+            caraMasak,
           },
         };
       } catch (error) {
-        console.error(`Error adding coment: ${error.stack}`);
-        return h.response({ error: true, message: 'Failed to add coment' }).code(500);
+        console.error(`Error adding resep: ${error.stack}`);
+        return h.response({ error: true, message: 'Failed to add resep' }).code(500);
       }
     },
     options: {
       validate: {
         payload: Joi.object({
           id: Joi.string().required(),
-          name: Joi.string().required(),
-          komentar: Joi.string().required(),
+          bahan: Joi.string().required(),
+          caraMasak: Joi.string().required(),
         }),
       },
       cors: {
